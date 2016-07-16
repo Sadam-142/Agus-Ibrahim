@@ -16003,15 +16003,17 @@ cr.plugins_.MyPlugin = function(runtime)
 		var min_=115-Number(dx[0]);var max_=115-Number(dx[1])
 		var dat={}
 		var ke=1
+		if(localStorage.getItem('room'+levl)!=null) return
 		while(Object.keys(dat).length<16){
 			var rand=getRandomInt(max_,min_)
 			var randayat=getRandomInt(1,surat2jum[rand])
 			var value_=''+rand+'-'+randayat
-			if(dat.indexOf(value_)==-1) dat[ke]=value_;ke=ke+1
+			if(dat[ke]!=value_) dat['room'+ke]=value_;ke=ke+1
 		}
-		if(localStorage.getItem(''+levl)==null){
-			localStorage.setItem(''+levl, JSON.stringify(dat))
+		if(localStorage.getItem('room'+levl)==null){
+			localStorage.setItem('room'+levl, JSON.stringify(dat))
 		}
+		alert(JSON.stringify(dat))
 	};
 	pluginProto.acts = new Acts();
 	function Exps() {};
@@ -16038,6 +16040,15 @@ cr.plugins_.MyPlugin = function(runtime)
 	Exps.prototype.getNama = function (ret,aa)	// 'ret' must always be the first parameter - always return the expression's result through it!
 	{
 		ret.set_string(surat2nama[''+aa]);		// for ef_return_string
+	};
+	Exps.prototype.reqAyat2 = function (ret,roots,lvl)	// 'ret' must always be the first parameter - always return the expression's result through it!
+	{
+		alert("cek data")
+		if(localStorage.getItem('room'+roots)==null){ return}
+		alert("data ada")
+		var dbl=JSON.parse(localStorage.getItem('room'+roots))['room'+lvl].split("-")
+		var surat=dbl[0]; var ayat=dbl[1];
+		ret.set_string(""+dataayat[''+surat][''+ayat]);
 	};
 	Exps.prototype.reqAyat = function (ret,levl)	// 'ret' must always be the first parameter - always return the expression's result through it!
 	{
@@ -20495,11 +20506,11 @@ cr.behaviors.Sin = function(runtime)
 }());
 cr.getObjectRefTable = function () { return [
 	cr.plugins_.Arr,
-	cr.plugins_.Browser,
 	cr.plugins_.Button,
 	cr.plugins_.Function,
 	cr.plugins_.List,
 	cr.plugins_.LocalStorage,
+	cr.plugins_.Browser,
 	cr.plugins_.MyPlugin,
 	cr.plugins_.sliderbar,
 	cr.plugins_.Sprite,
@@ -20550,12 +20561,14 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Button.prototype.cnds.OnClicked,
 	cr.plugins_.LocalStorage.prototype.acts.ClearStorage,
 	cr.plugins_.Text.prototype.acts.SetText,
-	cr.plugins_.MyPlugin.prototype.exps.reqAyat,
+	cr.plugins_.MyPlugin.prototype.exps.reqAyat2,
 	cr.system_object.prototype.exps.max,
 	cr.plugins_.Arr.prototype.exps.At,
 	cr.system_object.prototype.acts.AddVar,
 	cr.plugins_.LocalStorage.prototype.acts.SetItem,
 	cr.plugins_.Arr.prototype.exps.AsJSON,
 	cr.plugins_.List.prototype.cnds.OnSelectionChanged,
-	cr.plugins_.List.prototype.exps.SelectedIndex
+	cr.plugins_.List.prototype.exps.SelectedIndex,
+	cr.plugins_.MyPlugin.prototype.acts.GenRoom,
+	cr.plugins_.Browser.prototype.acts.ExecJs
 ];};

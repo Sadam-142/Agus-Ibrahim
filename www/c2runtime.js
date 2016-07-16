@@ -15944,6 +15944,8 @@ var surat2jum={78: 40, 79: 46, 80: 42, 81: 29, 82: 19, 83: 36, 84: 25, 85: 22, 8
 var surat2nama={"78": "An-Nabaa\u2019", "79": "An-Nazi\u2019aat", "80": "\u2018Abasaa", "81": "At-Takwir", "82": "An-Iftiraah", "83": "Al-Muthaffifin", "84": "Al-Insyiqaaq", "85": "Al-Buruuj", "86": "At-Thaariq", "87": "Al-A\u2019laa", "88": "Al-Ghaasyiah", "89": "Al-Fajr", "90": "Al-Balad", "91": "Asy-Syams", "92": "Al-Lail", "93": "Ad-Dhuhaa", "94": "Alam Nasyrah", "95": "At-Tiin", "96": "Al-Alaq", "97": "Al-Qadar", "98": "Al-Bayyinah", "99": "Al-Zalzalah", "100": "Al-\u2018Aadiyaat", "101": "Al-Qaari\u2019ah", "102": "At-Takatsur", "103": "Al-\u2018Ashr", "104": "Al-Humazah", "105": "Al-Fiil", "106": "Al-Qurasy", "107": "Al-Maa\u2019uun", "108": "Al-Kautsar", "109": "Al-Kaafiruun", "110": "An-Nashr", "111": "Al-Lahab", "112": "Al-Ikhlash", "113": "Al-Falaq", "114": "An-Naas"}
 var surat2arti={78: 'Berita Besar.', 79: 'Ia Bermuka Asam.', 80: 'Orang yang Cemberut.', 81: 'Menggulung.', 82: 'Terbelah.', 83: 'Orang-orang yang Curang.', 84: 'Terbelah.', 85: 'Gugusan Bintang-bintang.', 86: 'Yang Datang di Malam Hari.', 87: 'Yang Paling Tinggi.', 88: 'Hari Pembalasan.', 89: 'Fajar.', 90: 'Negeri.', 91: 'Matahari.', 92: 'Malam.', 93: 'Waktu Matahari Sepenggal Naik.', 94: 'Melapangkan.', 95: 'Buah Tin.', 96: 'Segumpal Darah.', 97: 'Kemuliaan.', 98: 'Bukti.', 99: 'Kegoncangan.', 100: 'Kuda Perang.', 101: 'Hari Kiamat.', 102: 'Bermegah-megah.', 103: 'Masa.', 104: 'Pengumpat.', 105: 'Gajah.', 106: 'Suku Quraisy.', 107: 'Barang yang Berguna.', 108: 'Nikmat yang Banyak.', 109: 'Orang-orang Kafir.', 110: 'Pertolongan.', 111: 'Gejolak Api.', 112: 'Memurnikan Keesaan Allah.', 113: 'Waktu Subuh.', 114: 'Manusia.'}
 var levels={1: "1-20", 2: "5-25", 3: "10-28", 4: "11-27", 5: "13-30", 6: "15-30", 7: "17-33", 8: "19-37", 9: "16-35", 10: "20-35", 11: "18-35", 12: "21-37", 13: "22-26", 14: "17-37", 15: "20-37", 16: "22-37"}
+var csurat=1;
+var cayat=1;
 cr.plugins_.MyPlugin = function(runtime)
 {
 	this.runtime = runtime;
@@ -15997,6 +15999,20 @@ cr.plugins_.MyPlugin = function(runtime)
 	{
 		alert(myparam);
 	};
+	Acts.prototype.BacaAyat = function (surat, ayat)
+	{
+		var loc="au/"+surat+"/"+ayat+".js"
+		lla.preloadAudio(loc, loc, 1, function(msg){
+			lla.play(loc);
+		}, function(err){
+			alert("Error load audio: "+err)
+		})
+	};
+	Acts.prototype.unloadAudio = function (surat, ayat)
+	{
+		var loc="au/"+surat+"/"+ayat+".js"
+		lla.unload(loc);
+	};
 	Acts.prototype.GenRoom = function (levl)
 	{
 		var dx=levels[levl].split("-")
@@ -16013,7 +16029,6 @@ cr.plugins_.MyPlugin = function(runtime)
 		if(localStorage.getItem('room'+levl)==null){
 			localStorage.setItem('room'+levl, JSON.stringify(dat))
 		}
-		alert(JSON.stringify(dat))
 	};
 	pluginProto.acts = new Acts();
 	function Exps() {};
@@ -16043,12 +16058,20 @@ cr.plugins_.MyPlugin = function(runtime)
 	};
 	Exps.prototype.reqAyat2 = function (ret,roots,lvl)	// 'ret' must always be the first parameter - always return the expression's result through it!
 	{
-		alert("cek data")
 		if(localStorage.getItem('room'+roots)==null){ return}
-		alert("data ada")
 		var dbl=JSON.parse(localStorage.getItem('room'+roots))['room'+lvl].split("-")
 		var surat=dbl[0]; var ayat=dbl[1];
+		csurat=surat
+		cayat=ayat
 		ret.set_string(""+dataayat[''+surat][''+ayat]);
+	};
+	Exps.prototype.currentSurat = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
+	{
+		ret.set_string(csurat);		// for ef_return_string
+	};
+	Exps.prototype.currentAyat = function (ret)	// 'ret' must always be the first parameter - always return the expression's result through it!
+	{
+		ret.set_string(cayat);		// for ef_return_string
 	};
 	Exps.prototype.reqAyat = function (ret,levl)	// 'ret' must always be the first parameter - always return the expression's result through it!
 	{
@@ -20569,6 +20592,8 @@ cr.getObjectRefTable = function () { return [
 	cr.plugins_.Arr.prototype.exps.AsJSON,
 	cr.plugins_.List.prototype.cnds.OnSelectionChanged,
 	cr.plugins_.List.prototype.exps.SelectedIndex,
+	cr.plugins_.Touch.prototype.cnds.OnTapGestureObject,
+	cr.plugins_.MyPlugin.prototype.acts.BacaAyat,
 	cr.plugins_.MyPlugin.prototype.acts.GenRoom,
 	cr.plugins_.Browser.prototype.acts.ExecJs
 ];};
